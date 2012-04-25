@@ -61,7 +61,7 @@ case class OptionParser(
    * @param description description in the usage text
    * @param action callback function
    */
-  def opt(shortopt: String, longopt: String, description: String, action: String => Unit) =
+  def stringOpt(shortopt: String, longopt: String, description: String, action: String => Unit) =
     add(new ArgOptionDefinition(Some(shortopt), longopt, defaultValueName, description,
       { (s: String, _) => action(s) }))
 
@@ -70,7 +70,7 @@ case class OptionParser(
    * @param description description in the usage text
    * @param action callback function
    */
-  def opt(longopt: String, description: String, action: String => Unit) =
+  def stringOpt(longopt: String, description: String, action: String => Unit) =
     add(new ArgOptionDefinition(None, longopt, defaultValueName, description,
       { (s: String, _) => action(s) }))
 
@@ -81,7 +81,7 @@ case class OptionParser(
    * @param description description in the usage text
    * @param action callback function
    */      
-  def opt(shortopt: String, longopt: String, valueName: String,
+  def stringOpt(shortopt: String, longopt: String, valueName: String,
       description: String, action: String => Unit) =
     add(new ArgOptionDefinition(Some(shortopt), longopt, valueName, description,
       { (s: String, _) => action(s) }))
@@ -103,8 +103,8 @@ case class OptionParser(
    * @param longopt long option
    * @param description description in the usage text
    * @param action callback function
-   */      
-  def opt(shortopt: String, longopt: String, description: String, action: => Unit) =
+   */
+  def opt(shortopt: String, longopt: String, description: String, action: Unit => Unit) =
     add(new FlagOptionDefinition(Some(shortopt), longopt, description, action))
 
   /** adds a flag option invoked by `--longopt`.
@@ -112,7 +112,7 @@ case class OptionParser(
    * @param description description in the usage text
    * @param action callback function
    */
-  def opt(longopt: String, description: String, action: => Unit) =
+  def opt(longopt: String, description: String, action: Unit => Unit) =
     add(new FlagOptionDefinition(None, longopt, description, action))
       
   // we have to give these typed options separate names, because of &^@$! type erasure
@@ -243,10 +243,10 @@ case class OptionParser(
       { (k: String, v: Boolean, _) => action(k, v) }))
   
   def help(shortopt: String, longopt: String, description: String) =
-    add(new FlagOptionDefinition(Some(shortopt), longopt, description, {this.showUsage; exit}))
+    add(new FlagOptionDefinition(Some(shortopt), longopt, description, {_: Unit => this.showUsage; exit; Unit}))
 
   def help(shortopt: Option[String], longopt: String, description: String) =
-    add(new FlagOptionDefinition(shortopt, longopt, description, {this.showUsage; exit}))
+    add(new FlagOptionDefinition(shortopt, longopt, description, {_: Unit => this.showUsage; exit; Unit}))
   
   def separator(description: String) =
     add(new SeparatorDefinition(description))

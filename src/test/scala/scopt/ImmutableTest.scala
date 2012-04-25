@@ -3,6 +3,7 @@ package immutabletest
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import scala.Predef._
 
 /**
  * Tests the use of the options parser
@@ -10,6 +11,7 @@ import org.scalatest.FunSuite
 case class Config(out: String = "",
   foo: Int = -1,
   bar: String = null,
+  bop: Boolean = false,
   xyz: Boolean = false,
   libname: String = null,
   libfile: String = null,
@@ -28,7 +30,9 @@ class ImmutableTest extends FunSuite {
       { (key: String, value: String, c: Config) => c.copy(libname = key, libfile = value) },
     keyIntValueOpt(None, "max", "<libname>", "<max>", "maximum count for <libname>")
       { (key: String, value: Int, c: Config) => c.copy(maxlibname = key, maxcount = value) },
-    booleanOpt("xyz", "xyz is a boolean property") { (v: Boolean, c: Config) => c.copy(xyz = v) }
+    booleanOpt("xyz", "xyz is a boolean property") { (v: Boolean, c: Config) => c.copy(xyz = v)},
+    flag("b","bop") {c: Config => c.copy(bop = true)},
+    help("h","help","Print out this help string")
   )}
 
   test("valid arguments are parsed correctly") {
@@ -55,6 +59,10 @@ class ImmutableTest extends FunSuite {
 
   test("bad booleans fail to parse nicely") {
     invalidArguments(parser1, "--xyz", "shouldBeBoolean", "blah")
+  }
+
+  test("help should simply print out message and exit") {
+    invalidArguments(parser1, "-h")
   }
 
   def validArguments(parser: scopt.immutable.OptionParser[Config],

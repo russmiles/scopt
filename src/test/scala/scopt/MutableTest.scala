@@ -3,6 +3,8 @@ package mutabletest
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import javax.management.remote.rmi._RMIConnection_Stub
+import scopt.immutable.OptionParser._
 
 /**
  * Tests the use of the options parser
@@ -10,6 +12,7 @@ import org.scalatest.FunSuite
 
 case class Config(var foo: Int = -1,
   var bar: String = null,
+  var bop: Boolean = false,
   var xyz: Boolean = false,
   var libname: String = null,
   var libfile: String = null,
@@ -25,15 +28,16 @@ class OptionsTest extends FunSuite {
 
   val parser1 = new scopt.OptionParser("scopt") {
     intOpt("f", "foo", "foo is an integer property", {v: Int => config.foo = v})
-    opt("o", "output", "<file>", "output is a string property", {v: String => config.bar = v})
+    stringOpt("o", "output", "<file>", "output is a string property", {v: String => config.bar = v})
     booleanOpt("xyz", "xyz is a boolean property", {v: Boolean => config.xyz = v})
     keyValueOpt("l", "lib", "<libname>", "<filename>", "load library <libname>",
       {(key: String, value: String) => { config.libname = key; config.libfile = value } })
     keyIntValueOpt(None, "max", "<libname>", "<max>", "maximum count for <libname>",
       {(key: String, value: Int) => { config.maxlibname = key; config.maxcount = value } })
     opt("package-dir", "generates package directories",
-      { config.packageDir = true })
+      { _ => config.packageDir = true })
     arg("<file>", "some argument", {v: String => config.whatnot = v})
+    help("h","help","Print out this help string")
   }
   
   test("valid arguments are parsed correctly") {
@@ -82,6 +86,10 @@ class OptionsTest extends FunSuite {
   
   test("valid optional argument is parsed correctly") {
     validArguments(parser3, Config(files = List("foo")), "foo")
+  }
+
+  test("help should simply print out message and exit") {
+    invalidArguments(parser1, "-h")
   }
     
   def validArguments(parser: scopt.OptionParser,

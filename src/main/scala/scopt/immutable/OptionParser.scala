@@ -1,5 +1,6 @@
 package scopt.immutable
 
+import immutabletest.Config
 import scopt.generic._
 import GenericOptionParser._
 
@@ -61,7 +62,7 @@ abstract case class OptionParser[C](
    * @param action callback function
    */      
   def flag(shortopt: String, longopt: String, description: String)(action: C => C) =
-    new FlagOptionDefinition(Some(shortopt), longopt, description, action)
+    new FlagOptionDefinition[C](Some(shortopt), longopt, description, action)
 
   /** adds a flag option invoked by `--longopt`.
    * @param longopt long option
@@ -69,7 +70,7 @@ abstract case class OptionParser[C](
    * @param action callback function
    */
   def flag(longopt: String, description: String)(action: C => C) =
-    new FlagOptionDefinition(None, longopt, description, action)
+    new FlagOptionDefinition[C](None, longopt, description, action)
       
   // we have to give these typed options separate names, because of &^@$! type erasure
   def intOpt(shortopt: String, longopt: String, description: String)(action: (Int, C) => C) =
@@ -171,10 +172,15 @@ abstract case class OptionParser[C](
     new KeyBooleanValueArgOptionDefinition(shortopt, longopt, keyName, valueName, description, action)
   
   def help(shortopt: String, longopt: String, description: String) =
-    new FlagOptionDefinition(Some(shortopt), longopt, description, {this.showUsage; exit})
+    new FlagOptionDefinition(Some(shortopt), longopt, description, {
+      c: C => {
+        this.showUsage;
+        sys.exit();
+        c  }
+    })
 
   def help(shortopt: Option[String], longopt: String, description: String) =
-    new FlagOptionDefinition(shortopt, longopt, description, {this.showUsage; exit})
+    new FlagOptionDefinition(shortopt, longopt, description, {c: C => this.showUsage; sys.exit(); c})
   
   def separator(description: String) =
     new SeparatorDefinition(description)
